@@ -21,13 +21,13 @@ public class AddTableActivity extends Activity
 	{
 		super.onCreate(savedInstanceState);
 		requestWindowFeature(Window.FEATURE_NO_TITLE);
-		
+
 		ctx = this;
-		
+
 		setContentView(R.layout.layout_add_new_table);
 		mappingViews();
 	}
-	
+
 	private void mappingViews()
 	{
 		txTable = (EditText) findViewById(R.id.txTableName);
@@ -35,8 +35,8 @@ public class AddTableActivity extends Activity
 		txPassword = (EditText) findViewById(R.id.txTablePassword);
 		txAmount = (EditText) findViewById(R.id.txTableMaximum);
 	}
-	
-	
+
+
 	private void returnAndFinish()
 	{
 		if (txTable == null || txTable.getText().toString().trim().length() == 0)
@@ -45,6 +45,7 @@ public class AddTableActivity extends Activity
 			return;
 		}
 		// TODO: CHANGE. WRITE DIRECTLY TO DB INSTEAD OF TRANSFER DATA THROUGH INTENTS.
+		// This is important.
 		Intent intAddTable = new Intent("ADDING_TABLE");
 		intAddTable.putExtra("TABLE_NAME", txTable.getText().toString());
 		intAddTable.putExtra("TABLE_DESCRIPTION", txDescription.getText().toString());
@@ -53,13 +54,13 @@ public class AddTableActivity extends Activity
 		setResult(Activity.RESULT_OK, intAddTable);
 		finish();
 	}
-	
-	
+
+
 	public void btnAddTableOnClick (View v)
 	{
 		returnAndFinish();
 	}
-	
+
 	public void btnCancelTableOnClick (View v)
 	{
 		setResult(Activity.RESULT_CANCELED);
