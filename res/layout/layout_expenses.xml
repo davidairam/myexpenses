@@ -36,7 +36,7 @@
             android:singleLine="true"
             android:maxLines="1"
             android:imeOptions="actionDone"
-            android:inputType="numberDecimal" >
+            android:inputType="numberSigned" >
         </EditText>
 
         <ImageView
@@ -79,7 +79,7 @@
            android:layout_marginBottom="5dp"
            android:text="Dif.: 0€"
            android:textAppearance="?android:attr/textAppearanceLarge"
-           android:textColor="#00ff00"
+           android:textColor="#148200"
            android:textSize="22sp" />
 
         <TextView
