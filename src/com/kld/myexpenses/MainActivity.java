@@ -1,5 +1,10 @@
 package com.kld.myexpenses;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.nio.channels.FileChannel;
 import java.util.List;
 
 import android.app.Activity;
@@ -9,6 +14,7 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.os.Environment;
 import android.preference.PreferenceManager;
 import android.text.InputType;
 import android.util.Log;
@@ -28,214 +34,204 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.kld.myexpenses.database.DBUtils;
 import com.kld.myexpenses.database.TExpensesDAO;
 import com.kld.myexpenses.database.TTable;
 import com.kld.myexpenses.database.TTablesDAO;
 import com.kld.myexpenses.utils.TInputTextDialog;
 import com.kld.myexpenses.utils.Utils;
 
-public class MainActivity extends Activity
-{
+public class MainActivity extends Activity {
 	private static final String TAG = "TablesList-MainActivity";
-	
-	
+
 	Context ctx;
 	GridView gridViewMain;
 	Button btnAux;
 	List<TTable> list_tables;
 	TablesAdapter lsAdapter;
 	TTablesDAO ds;
-	
+
 	String defaultTable;
-	boolean returningFromExpenses=false;;
-	
+	boolean returningFromExpenses = false;;
+
 	@Override
-	protected void onCreate(Bundle savedInstanceState)
-	{
+	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.layout_main);
 		ctx = this;
-		
-		 ds = new TTablesDAO(this);
-		 ds.open();
-		 
-		 // TODO: REVIWE THIS FUCKING LINES. above and below.
-		 list_tables = ds.getAllRows();
-		 ds.getAllSysTables();
-		 defaultTable = getDefaultTableName();
-		 lsAdapter = new TablesAdapter(ctx, R.layout.item_table_gridview, list_tables);
-		 mappingViews();
+
+		ds = new TTablesDAO(this);
+		ds.open();
+
+		// TODO: REVIWE THIS FUCKING LINES. above and below.
+		list_tables = ds.getAllRows();
+		ds.getAllSysTables();
+		defaultTable = getDefaultTableName();
+		lsAdapter = new TablesAdapter(ctx, R.layout.item_table_gridview,
+				list_tables);
+		mappingViews();
 	}
-	
+
 	@Override
-	protected void onResume()
-	{
+	protected void onResume() {
 		super.onResume();
-		
-		if (!returningFromExpenses && defaultTable != null)
-		{
-			Intent intLaunchExpensesActivity = new Intent(ctx, ExpensesActivity.class);
-			intLaunchExpensesActivity.putExtra("PARAM_TABLE_NAME", defaultTable);
+
+		if (!returningFromExpenses && defaultTable != null) {
+			Intent intLaunchExpensesActivity = new Intent(ctx,
+					ExpensesActivity.class);
+			intLaunchExpensesActivity
+					.putExtra("PARAM_TABLE_NAME", defaultTable);
 			startActivityForResult(intLaunchExpensesActivity, 200);
 		}
 
 		returningFromExpenses = false;
 	}
-	
+
 	private void refreshTables() {
-		list_tables = ds.getAllRows();		
+		list_tables = ds.getAllRows();
 		lsAdapter.notifyDataSetChanged();
 	}
-	
-	private void mappingViews()
-	{
-		gridViewMain = (GridView) findViewById(R.id.gridViewTables);		
+
+	private void mappingViews() {
+		gridViewMain = (GridView) findViewById(R.id.gridViewTables);
 		gridViewMain.setAdapter(lsAdapter);
 		lsAdapter.notifyDataSetChanged();
-		
-		 gridViewMain.setOnItemClickListener(new AdapterView.OnItemClickListener()
-		{
 
-			@Override
-			public void onItemClick(AdapterView<?> arg0, View view, int pos,
-					long arg3)
-			{
-				Intent intLaunchExpensesActivity = new Intent(ctx, ExpensesActivity.class);
-				intLaunchExpensesActivity.putExtra("PARAM_TABLE_NAME", list_tables.get(pos).getName());
-				startActivityForResult(intLaunchExpensesActivity, 200);
-			}
-			 
-		});
-		 
-		 registerForContextMenu(gridViewMain);
+		gridViewMain
+				.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+
+					@Override
+					public void onItemClick(AdapterView<?> arg0, View view,
+							int pos, long arg3) {
+						Intent intLaunchExpensesActivity = new Intent(ctx,
+								ExpensesActivity.class);
+						intLaunchExpensesActivity.putExtra("PARAM_TABLE_NAME",
+								list_tables.get(pos).getName());
+						startActivityForResult(intLaunchExpensesActivity, 200);
+					}
+
+				});
+
+		registerForContextMenu(gridViewMain);
 	}
-	
-	private class TablesAdapter extends ArrayAdapter<TTable> 
-	{
+
+	private class TablesAdapter extends ArrayAdapter<TTable> {
 
 		Context context;
 		LayoutInflater li;
 		int resId;
-		
-		public TablesAdapter(Context context, int resource, List<TTable> objects)
-		{
+
+		public TablesAdapter(Context context, int resource, List<TTable> objects) {
 			super(context, resource, objects);
 			this.context = context;
 			this.resId = resource;
 			this.li = getLayoutInflater();
 		}
 
-
 		@Override
-		public View getView(int position, View convertView, ViewGroup parent)
-		{
+		public View getView(int position, View convertView, ViewGroup parent) {
 			View gridview;
-			
-			if (convertView == null)
-			{
+
+			if (convertView == null) {
 				gridview = new View(context);
 				gridview = li.inflate(resId, null);
-			}
-			else 
+			} else
 				gridview = (View) convertView;
-			
-			TextView lblTable = (TextView) gridview.findViewById(R.id.lblTablename);
+
+			TextView lblTable = (TextView) gridview
+					.findViewById(R.id.lblTablename);
 			TextView lblExtra = (TextView) gridview.findViewById(R.id.lblExtra);
-			ImageView imgStarred = (ImageView) gridview.findViewById(R.id.imgStarredTable);
+			ImageView imgStarred = (ImageView) gridview
+					.findViewById(R.id.imgStarredTable);
 			TTable itemTable = (TTable) getItem(position);
-			
+
 			lblTable.setText(itemTable.getName());
 			lblExtra.setText(itemTable.getDescription());
 			imgStarred.setVisibility(View.GONE);
-			
-			if (defaultTable != null && defaultTable.equalsIgnoreCase(itemTable.getName())) {
+
+			if (defaultTable != null
+					&& defaultTable.equalsIgnoreCase(itemTable.getName())) {
 				imgStarred.setVisibility(View.VISIBLE);
 			}
 			return gridview;
 		}
 	}
+
 	@Override
-	protected void onActivityResult(int requestCode, int resultCode, Intent data)
-	{
-		if (requestCode == 100)
-		{
-			if (resultCode == Activity.RESULT_OK && data != null)
-			{
-				
+	protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+		if (requestCode == 100) {
+			if (resultCode == Activity.RESULT_OK && data != null) {
+
 				String tName = data.getStringExtra("TABLE_NAME");
 				String tDescription = data.getStringExtra("TABLE_DESCRIPTION");
 				String tPassword = data.getStringExtra("TABLE_PASSWORD");
 				String tLimit = data.getStringExtra("TABLE_LIMIT");
 				int iLimit;
-				try { 
-					iLimit= Integer.parseInt(tLimit);
+				try {
+					iLimit = Integer.parseInt(tLimit);
+				} catch (Exception e) {
+					iLimit = 0;
 				}
-				catch (Exception e) { iLimit = 0; }
-				
-				TTable  eltoAdded = ds.add(tName, iLimit, tDescription, tPassword);
-				if (eltoAdded == null)
-				{
-					Toast.makeText(ctx, "La tabla YA EXISTE!", Toast.LENGTH_SHORT).show();
+
+				TTable eltoAdded = ds.add(tName, iLimit, tDescription,
+						tPassword);
+				if (eltoAdded == null) {
+					Toast.makeText(ctx, "La tabla YA EXISTE!",
+							Toast.LENGTH_SHORT).show();
 					return;
 				}
 				Toast.makeText(ctx, "added", Toast.LENGTH_SHORT).show();
 				list_tables.add(eltoAdded);
 				lsAdapter.notifyDataSetChanged();
 			}
-				
-		}
-		else if (requestCode == 200) {
+
+		} else if (requestCode == 200) {
 			returningFromExpenses = true;
 		}
 	}
-	public void addTableOnClick (MenuItem item) 
-	{
-		 
+
+	public void addTableOnClick(MenuItem item) {
+
 		Intent launchNewTableIntent = new Intent(ctx, AddTableActivity.class);
 		startActivityForResult(launchNewTableIntent, 100);
 	}
-	
-	public void refreshOnClick (MenuItem item) 
-	{
-		 
+
+	public void refreshOnClick(MenuItem item) {
+
 		refreshTables();
 	}
-	
-	
+
 	@Override
-	public boolean onCreateOptionsMenu(Menu menu)
-	{
+	public boolean onCreateOptionsMenu(Menu menu) {
 		getMenuInflater().inflate(R.menu.menu_main, menu);
 		return super.onCreateOptionsMenu(menu);
 	}
-	
+
 	@Override
 	public void onCreateContextMenu(ContextMenu menu, View v,
-			ContextMenuInfo menuInfo)
-	{
+			ContextMenuInfo menuInfo) {
 		super.onCreateContextMenu(menu, v, menuInfo);
-		
+
 		menu.setHeaderTitle("Table Options");
 		menu.add(0, 1, 0, "Set as Default");
 		menu.add(0, 2, 0, "Rename");
 		menu.add(0, 3, 0, "Delete");
-		
+
 	}
-	
+
 	@Override
-	public boolean onContextItemSelected(MenuItem item)
-	{
-		AdapterContextMenuInfo adrMenu = (AdapterContextMenuInfo)item.getMenuInfo();
+	public boolean onContextItemSelected(MenuItem item) {
+		AdapterContextMenuInfo adrMenu = (AdapterContextMenuInfo) item
+				.getMenuInfo();
 		if (adrMenu.position < 0)
 			return true;
-		
+
 		TTable auxTable = list_tables.get(adrMenu.position);
-		
+
 		if (auxTable == null)
 			return true;
-		
-		switch (item.getItemId())
-		{
+
+		switch (item.getItemId()) {
 		case 1:
 			setAsDefault(auxTable);
 			break;
@@ -247,19 +243,23 @@ public class MainActivity extends Activity
 			deleteTable(auxTable);
 			break;
 		}
-		
+
 		return super.onContextItemSelected(item);
 	}
-	
+
 	private String getDefaultTableName() {
-		SharedPreferences prefs= PreferenceManager.getDefaultSharedPreferences(ctx);
+		SharedPreferences prefs = PreferenceManager
+				.getDefaultSharedPreferences(ctx);
 		return prefs.getString(Utils.KEY_DEFAULT_TABLE, null);
 	}
+
 	private void setAsDefault(TTable tabla) {
-		SharedPreferences.Editor prefsEdit = PreferenceManager.getDefaultSharedPreferences(ctx).edit();
-		
+		SharedPreferences.Editor prefsEdit = PreferenceManager
+				.getDefaultSharedPreferences(ctx).edit();
+
 		// Remove any table as default...
-		if (getDefaultTableName() != null && getDefaultTableName().equalsIgnoreCase(tabla.getName())) {
+		if (getDefaultTableName() != null
+				&& getDefaultTableName().equalsIgnoreCase(tabla.getName())) {
 			prefsEdit.remove(Utils.KEY_DEFAULT_TABLE);
 			prefsEdit.commit();
 			defaultTable = null;
@@ -269,81 +269,144 @@ public class MainActivity extends Activity
 
 		// Setting as default...
 		prefsEdit.putString(Utils.KEY_DEFAULT_TABLE, tabla.getName());
-		
+
 		if (prefsEdit.commit()) {
 			defaultTable = tabla.getName();
 			lsAdapter.notifyDataSetChanged();
 		}
 	}
-	
+
 	private void deleteTable(final TTable table) {
-		
+
 		TExpensesDAO dsExpensesAux = new TExpensesDAO(ctx, table.getName());
-		
-		try  {
+
+		try {
 			dsExpensesAux.open(true);
-			
+
 			if (dsExpensesAux.getAllRows().size() >= 10) {
-				Toast.makeText(ctx, "You can NOT DELETE a table with 10 items or more.", Toast.LENGTH_SHORT).show();
+				Toast.makeText(ctx,
+						"You can NOT DELETE a table with 10 items or more.",
+						Toast.LENGTH_SHORT).show();
 				return;
 			}
-		}
-		catch (Exception e) {
-			Log.e(TAG, "ERROR: deleteTable() Trying to check the table items size. -> " + e.getMessage());
+		} catch (Exception e) {
+			Log.e(TAG,
+					"ERROR: deleteTable() Trying to check the table items size. -> "
+							+ e.getMessage());
 			e.printStackTrace();
 		}
-		
+
 		AlertDialog.Builder dlgConfirmDeleteTable = new AlertDialog.Builder(ctx);
-		
-		dlgConfirmDeleteTable.setTitle("Are you sure to delete the table " + table.getName() + "?");
+
+		dlgConfirmDeleteTable.setTitle("Are you sure to delete the table "
+				+ table.getName() + "?");
 		dlgConfirmDeleteTable.setCancelable(true);
 		dlgConfirmDeleteTable.setNegativeButton("No!", null);
-		dlgConfirmDeleteTable.setPositiveButton("Yes,  I am sure.", new DialogInterface.OnClickListener()
-		{
-			
-			@Override
-			public void onClick(DialogInterface dialog, int which)
-			{
+		dlgConfirmDeleteTable.setPositiveButton("Yes,  I am sure.",
+				new DialogInterface.OnClickListener() {
 
-				if (ds.deleteTable(table)) {
-					lsAdapter.remove(table);
-					Toast.makeText(ctx, "Deleted.", Toast.LENGTH_SHORT).show();
-				}
-			}
-		});
-		
+					@Override
+					public void onClick(DialogInterface dialog, int which) {
+
+						if (ds.deleteTable(table)) {
+							lsAdapter.remove(table);
+							Toast.makeText(ctx, "Deleted.", Toast.LENGTH_SHORT)
+									.show();
+						}
+					}
+				});
+
 		dlgConfirmDeleteTable.show();
 	}
-	
-	
-	private void renameTable(final TTable table) {
-		
-		TInputTextDialog.OnInputTextDialogDone okevent = new TInputTextDialog.OnInputTextDialogDone()
-		{
+
+
+	public void databaseBackupOnClick (MenuItem item) {
+
+		TInputTextDialog.OnInputTextDialogDone okevent = new TInputTextDialog.OnInputTextDialogDone() {
 			@Override
-			public void OnInputTextDone(String text)
-			{
+			public void OnInputTextDone(String text) {
+				if (text.trim().length() == 0)
+				{
+				  text = "myExpenses";
+				}
+
+				saveDatabase(text);
+
+			}
+		};
+
+		TInputTextDialog input = new TInputTextDialog(ctx, "Backup directory name",
+				"Insert the name of the directory to save the database or press OK to use default:", "myExpenses",InputType.TYPE_CLASS_TEXT, okevent);
+		input.show();
+	}
+
+	private void renameTable(final TTable table) {
+
+		TInputTextDialog.OnInputTextDialogDone okevent = new TInputTextDialog.OnInputTextDialogDone() {
+			@Override
+			public void OnInputTextDone(String text) {
 				if (text.trim().length() == 0)
 					return;
-				
+
 				if (TTablesDAO.existsTable(ctx, text)) {
-						Toast.makeText(ctx, "ERROR: Ya existe una tabla con ese nombre.", Toast.LENGTH_SHORT).show();
-						return;
+					Toast.makeText(ctx,
+							"ERROR: Ya existe una tabla con ese nombre.",
+							Toast.LENGTH_SHORT).show();
+					return;
 				}
-				
+
 				if (ds.rename(table, text)) {
 					refreshTables();
-				}
-				else {
-					Toast.makeText(ctx, "ERROR: No se pudo renombrar la tabla. Vuelva a intentarlo.", Toast.LENGTH_SHORT).show();
+				} else {
+					Toast.makeText(
+							ctx,
+							"ERROR: No se pudo renombrar la tabla. Vuelva a intentarlo.",
+							Toast.LENGTH_SHORT).show();
 				}
 			}
 		};
-		
-		TInputTextDialog input = new TInputTextDialog(ctx, "Rename Table", "Introduzca el nuevonombre:", table.getName(), InputType.TYPE_CLASS_TEXT, okevent);
+
+		TInputTextDialog input = new TInputTextDialog(ctx, "Rename Table",
+				"Introduzca el nuevo nombre:", table.getName(),
+				InputType.TYPE_CLASS_TEXT, okevent);
 		input.show();
-		 
-		 
+	}
+
+	private boolean saveDatabase (String outputDir) {
+		//Get a reference to the database
+		File dbFile = getApplicationContext().getDatabasePath(DBUtils.DATABASE_NAME);
+		//Get a reference to the directory location for the backup
+		File exportDir = new File(Environment.getExternalStorageDirectory(), outputDir);
+		if (!exportDir.exists()) {
+		  exportDir.mkdirs();
+		}
+		File backupFile = new File(exportDir, dbFile.getName());
+
+		//Attempt file copy
+		try {
+		  backupFile.createNewFile();
+		  fileCopy(dbFile, backupFile);
+		  Toast.makeText(ctx, "Backup database created successfully!", Toast.LENGTH_SHORT).show();
+		} catch (Exception e) {
+			Log.e(TAG, "ERROR: Trying to copy the database file in backup database.");
+			Toast.makeText(ctx, "I/O Error. Database backup NOT created.", Toast.LENGTH_SHORT).show();
+			return false;
+		}
+		return true;
+	}
+
+	@SuppressWarnings("resource")
+	private void fileCopy(File source, File dest) throws IOException {
+		FileChannel inChannel = new FileInputStream(source).getChannel();
+		FileChannel outChannel = new FileOutputStream(dest).getChannel();
+		try {
+			inChannel.transferTo(0, inChannel.size(), outChannel);
+		} finally {
+			// Closing channels.
+			if (inChannel != null)
+				inChannel.close();
+			if (outChannel != null)
+				outChannel.close();
+		}
 	}
 }
-

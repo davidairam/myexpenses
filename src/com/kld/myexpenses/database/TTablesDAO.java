@@ -319,7 +319,7 @@ public class TTablesDAO
 		
 		if (database == null || !database.isOpen()) 
 		{
-			Log.e(TAG, "RENAME TABLE: La instancia de la bd no est· operativa.");
+			Log.e(TAG, "RENAME TABLE: La instancia de la bd no est√° operativa.");
 			return false;
 		}
 		

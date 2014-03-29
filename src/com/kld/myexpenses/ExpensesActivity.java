@@ -150,7 +150,7 @@ public class ExpensesActivity extends Activity
 			{
 				hideKeyboard = !hideKeyboard;
 				btnAdd.setImageResource(hideKeyboard ? R.drawable.add : R.drawable.add_multi);
-				Toast.makeText(ctx, "Insercción por Lotes -> " + (hideKeyboard ? "Desactivada" : "Activada"), Toast.LENGTH_SHORT).show();
+				Toast.makeText(ctx, "InsercciÃ³n por Lotes -> " + (hideKeyboard ? "Desactivada" : "Activada"), Toast.LENGTH_SHORT).show();
 				return true;
 			}
 		});
@@ -330,7 +330,7 @@ public class ExpensesActivity extends Activity
 		int daysMonth = currentMonth.getActualMaximum(Calendar.DAY_OF_MONTH);
 		int currentDay = calToday.get(Calendar.DAY_OF_MONTH);
 
-		// TODO: CHEQUEAR EL PUTO AÑO!
+		// TODO: CHEQUEAR EL PUTO AÃ‘O!
 		if (currentMonth.get(Calendar.MONTH) < calToday.get(Calendar.MONTH) && 
 			currentMonth.getTimeInMillis() < calToday.getTimeInMillis())
 			currentDay = daysMonth+1;
@@ -340,15 +340,15 @@ public class ExpensesActivity extends Activity
 		
 		int leftDays = daysMonth - currentDay + 1;
 
-		lblResult.setText(String.format("%.2f €", totalSum));
+		lblResult.setText(String.format("%.2f â‚¬", totalSum));
 		if (difference > 0)
 		{
-			lblDifference.setText(String.format("+%.2f€  (%d days left)",
+			lblDifference.setText(String.format("+%.2fâ‚¬  (%d days left)",
 					difference, leftDays));
 			lblDifference.setTextColor(Color.GREEN);
 		} else
 		{
-			lblDifference.setText(String.format("%.2f€  (%d days left)",
+			lblDifference.setText(String.format("%.2fâ‚¬  (%d days left)",
 					difference, leftDays));
 			lblDifference.setTextColor(Color.RED);
 		}

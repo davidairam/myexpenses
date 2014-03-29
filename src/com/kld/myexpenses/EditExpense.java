@@ -278,7 +278,7 @@ public class EditExpense extends Activity
 		{
 			case R.id.action_btnEditOK:
 				if (updateExpense()) {
-					Toast.makeText(ctx, "Modificación con éxito!", Toast.LENGTH_SHORT).show();
+					Toast.makeText(ctx, "ModificaciÃ³n con Ã©xito!", Toast.LENGTH_SHORT).show();
 					setResult(RESULT_OK);
 					ds.close();
 					finish();

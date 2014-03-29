@@ -7,10 +7,15 @@
         android:showAsAction="never"
         android:title="Add Table..."/>
     <item
-        android:id="@+id/action_refresh_main"
-        
+        android:id="@+id/action_database_backup"
+        android:onClick="databaseBackupOnClick"
         android:orderInCategory="100"
+        android:showAsAction="never"
+        android:title="Backup Database..."/>
+    <item
+        android:id="@+id/action_refresh_main"
         android:onClick="refreshOnClick"
+        android:orderInCategory="100"
         android:showAsAction="never"
         android:title="Refresh!"/>
 
